@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+	<link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+	<link href="https://unpkg.com/nes.css@latest/css/nes.min.css" rel="stylesheet" />
+	<link href="custom.css" rel="stylesheet" />
+	
+    <title>Fantasy Name Generator</title>
+</head>
+<body id="body" style="background-color:#eed7a1;display:none;">
+    <main id="app">
+		<dialog class="nes-dialog" id="alert">
+			<form method="dialog" style="background-color:#eed7a1;padding:2em;">
+				<p class="title" style="font-size:150%;">ALERT</p>
+				<br>
+				<p id="alertContent"></p>
+				<br>
+				<menu class="dialog-menu" style="text-align:center;padding-left:0">
+					<button class="nes-btn" style="padding-left:1em;padding-right:1em">OK</button>
+				</menu>
+			</form>
+		</dialog>
+		
+		<dialog class="nes-dialog" id="confirmDeleteAllLayer">
+			<form method="dialog" style="background-color:#eed7a1;padding:2em;">
+				<p class="title" style="font-size:150%;">ALERT</p>
+				<br>
+				<p id="confirmDeleteContent">Do you really want to delete all saved names?</p>
+				<br>
+				<menu class="dialog-menu" style="text-align:center;padding-left:0">
+						<button class="nes-btn" v-on:click="closePopup('confirmDeleteAllLayer', '', '')" style="padding-left:2em;padding-right:2em">No</button>
+						<span style="padding-left:6em;"></span>
+						<button class="nes-btn" v-on:click="deleteName('yes')" style="padding-left:2em;padding-right:2em">Yes</button>
+				</menu>
+			</form>
+		</dialog>
+
+		<dialog class="nes-dialog" id="loginLayer">
+			<div style="padding-bottom:10%;background-color:#eed7a1;">
+			
+				<div style="text-align:right;padding-bottom:6%;font-size:125%">
+					<button type="button" class="nes-btn" value="X"  v-on:click="closePopup('loginLayer', '', '')" style="text-align:right;padding-right:0.5em;padding-left:0.5em;">
+						X
+					</button>
+				</div>
+				
+				<div style="text-align:center">
+					<p style="font-size:200%;margin-left:5em;margin-right:5em;">Fantasy Name Generator<p>
+					<br>
+					<div id="loginFields">
+						<input type="text" class="nes-input" v-model="user.username" id="usernameLogin" name="usernameLogin" placeholder="Username" style="width:500px" required v-on:keyup.enter="login()">
+						<br><br>
+						<input type="password" class="nes-input" v-model="user.password" id="passwordLogin" name="passwordLogin" placeholder="Password" style="width:500px" required v-on:keyup.enter="login()">
+					</div>
+					<br><br>
+					<p>Not a user? <a href="javascript:void(0)" v-on:click="showPopup('registerLayer', '', '')">Register here!</a></p>
+					<br>
+					<button type="button" class="nes-btn" value="Log In" v-on:click="login()">
+						Log In
+					</button>
+				</div>
+				
+			</div>
+		</dialog>
+		
+		<dialog class="nes-dialog" id="registerLayer">
+			<div style="padding-bottom:10%;background-color:#eed7a1;">
+			
+				<div style="text-align:right;padding-bottom:6%;font-size:125%">
+					<button type="button" class="nes-btn" value="X" v-on:click="closePopup('registerLayer', '', '')" style="text-align:right;padding-right:0.5em;padding-left:0.5em;">
+						X
+					</button>
+				</div>
+				
+				<div style="text-align:center;">
+					<p style="font-size:200%;margin-left:5em;margin-right:5em;">Account Registration<p>
+					<br>
+					<div id="registerFields">
+						<div class="tooltip">
+							<input type="text" class="nes-input" v-model="user.username" id="usernameRegister" name="usernameRegister" placeholder="Username" style="width:500px" required v-on:keyup.enter="register()">
+							<span class="nes-balloon from-left nes-pointer">8 to 50 characters: must not contain any special characters or spaces</span>
+						</div>
+						<br><br>
+						
+						<div class="tooltip">
+							<input type="password" class="nes-input" v-model="user.password" id="passwordRegister" name="passwordRegister" placeholder="Password" style="width:500px" required v-on:keyup.enter="register()">
+							<span class="nes-balloon from-left nes-pointer">8 to 64 characters: must contain at least a lowercase, uppercase, digit and special character</span>
+						</div>
+						<br><br>
+						<div class="tooltip">
+							<input type="password" class="nes-input" id="passwordConfirm" name="passwordConfirm" placeholder="Confirm Password" style="width:500px" required v-on:keyup.enter="register()">
+							<span class="nes-balloon from-left nes-pointer">Make sure your password is correct</span>
+						</div>
+						<br><br>
+						<div class="tooltip">
+							<input type="text" class="nes-input" v-model="user.email" id="emailRegister" name="emailRegister" placeholder="Email" style="width:500px" required v-on:keyup.enter="register()">
+							<span class="nes-balloon from-left nes-pointer">Max 100 characters: must not contain any insecure characters or spaces</span>
+						</div>
+					</div>
+					<br><br>
+					<button type="button" class="nes-btn" value="Register" v-on:click="register()">
+						Register
+					</button>
+				</div>
+				
+			</div>
+		</dialog>
+		
+		<dialog class="nes-dialog" id="menuLayer">
+			<div style="padding-bottom:10%;background-color:#eed7a1;">
+			
+				<div style="text-align:right;padding-bottom:6%;font-size:125%">
+					<button type="button" class="nes-btn" value="X" v-on:click="closePopup('menuLayer', '', '')" style="text-align:right;padding-right:0.5em;padding-left:0.5em;">
+						X
+					</button>
+				</div>
+				
+				<div style="text-align:center;">
+					<p style="font-size:200%; padding-left:5em;padding-right:5em">User Menu<p>
+					<br><br>
+					<button type="button" class="nes-btn" value="Change Password" v-on:click="showPopup('changePasswordLayer', 'menuLayer', '')">
+						Change Password
+					</button>
+				</div>
+				
+			</div>
+		</dialog>
+		
+		<dialog class="nes-dialog" id="changePasswordLayer">
+			<div style="padding-bottom:10%;background-color:#eed7a1;">
+			
+				<div style="text-align:right;padding-bottom:6%;font-size:125%">
+					<button type="button" class="nes-btn" value="X" v-on:click="closePopup('changePasswordLayer', '', 'menuLayer')" style="text-align:right;padding-right:1.5%;padding-left:1.5%;">
+						X
+					</button>
+				</div>
+				
+				<div style="text-align:center;padding-left:10em;padding-right:10em;">
+					<p style="font-size:200%">Change Your Password!<p>
+					<br>
+					<div>
+						<input type="password" class="nes-input" v-model="user.password" id="oldPassword" name="oldPassword" placeholder="Old Password" style="width:500px" required v-on:keyup.enter="changePassword()">
+						<br><br>
+						<div class="tooltip">
+							<input type="password" class="nes-input" id="newPassword" name="newPassword" placeholder="New Password" style="width:500px" required v-on:keyup.enter="changePassword()">
+							<span class="nes-balloon from-left nes-pointer">8 to 64 characters: must contain at least a lowercase, uppercase, digit, and special character</span>
+						</div>
+					</div>
+					<br><br>
+					<button type="button" class="nes-btn" value="Change" v-on:click="changePassword()">
+						Change
+					</button>
+				</div>
+				
+			</div>
+		</dialog>
+		
+		<dialog class="nes-dialog" id="feedbackLayer" style="width:90%;height:95%;">
+			<div style="width:100%;height:100%;background-color:#eed7a1;">
+			
+				<div style="text-align:right;padding-bottom:2.5%;font-size:125%">
+					<button type="button" class="nes-btn" value="X" v-on:click="closePopup('feedbackLayer', '', '')" style="text-align:right;padding-right:0.5em;padding-left:0.5em;">
+						X
+					</button>
+				</div>
+				
+				<div style="text-align:center;">
+					<p style="font-size:200%; padding-left:auto;padding-right:auto;padding-bottom:1em">Feedback<p>
+				</div>
+				
+				<div class="nes-container with-title" style="float:left;background-color:white;height:74%;width:60%;margin-left:2%;">
+					<p class="title" style="font-size:150%;">User feedback</p>
+					<div class="lists" id="savedFeedbackList" style="height:100%;font-size:115%;overflow:scroll;overflow-wrap:break-word;list-style-type:none;">
+						<nav>
+							<ul id="savedFeedbackList" class="nes-list is-circle">
+							</ul>
+						</nav>
+					</div>
+				</div>
+				
+				<div style="float:right;width:38%">
+					<div style="margin-left:5.75%;">
+						<label for="feedbackField" style="font-size:125%;">Your feedback:</label>
+						<textarea id="feedbackField" class="nes-textarea" v-on:keyup.enter="saveFeedback()" style="overflow:scroll;padding-bottom:40%;width:92.5%"></textarea>
+					</div>
+					
+					<div style="text-align:center;margin-top:8%">
+						<button type="button" class="nes-btn" value="Log In" v-on:click="saveFeedback()" style="padding-left:1.5em;padding-right:1.5em;">
+							Submit
+						</button>
+					</div>
+					<div style="text-align:center;margin-top:14%;font-size:125%;">
+						<p>Thank you for using our application!</p>
+					</div>
+				</div>
+			</div>
+		</dialog>
+		
+		<div v-if="!authenticated">
+			<div class="nes-container" style="background-color:white;text-align:left;height:5em">
+				Welcome to the dungeon, far traveler...
+				<button type="button" class="nes-btn" value="Log In" v-on:click="showPopup('loginLayer', '', '')" style="float:right">
+					Log In
+				</button>
+			</div>
+		</div>
+		
+		<div v-else>
+			<div class="nes-container" style="background-color:white;text-align:left;">
+				Welcome to the dungeon, {{this.user.username}}...
+				<div style="float:right;margin-right:1.75%">
+					<button type="button" class="nes-btn" value="Menu" v-on:click="showPopup('menuLayer', '', '')" style="margin-right:10%">
+						Menu
+					</button>
+					<button type="button" class="nes-btn" value="Log Out" v-on:click="logout()" style="margin-right:-10%">
+						Log Out
+					</button>
+				</div>
+			</div>
+		</div>
+		
+		<br>
+		
+		<div class="nes-container" style="margin-left:auto;margin-right:auto;text-align:center;font-size:180%;background-color:white;width:60%;">
+			<p>Fantasy Name Generator</p>
+		</div>
+		
+		<br>
+		
+		<div style="float:left;width:50%;margin-left:1.3%">
+			
+			<label for="genderSelect">Gender</label>
+			<div class="nes-select" style="width:200px;display:inline-block">
+				<select required id="genderSelect">
+					<option value="" disabled selected hidden>Select...</option>
+					<option value="Male">Male</option>
+					<option value="Female">Female</option>
+				</select>
+			</div>
+			
+			<label for="backgroundSelect">Background</label>
+			<div class="nes-select" style="width:260px;display:inline-block">
+				<select required id="backgroundSelect">
+					<option value="" disabled selected hidden>Select...</option>
+					<option value="Human">Human</option>
+					<option value="Elf">Elf</option>
+					<option value="Dwarf">Dwarf</option>
+					<option value="Orc">Orc</option>
+					<option value="Dragonborn">Dragonborn</option>
+				</select>
+			</div>
+			
+			<br><br>
+			
+			<label for="totalSelect" style="margin-right:1em;">Total</label>
+			<div class="nes-select" style="width:160px;display:inline-block;margin-right:6em;">
+				<select required id="totalSelect">
+					<option value="" disabled selected hidden>Select...</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+				</select>
+			</div>
+			
+			<label>
+				<div type="button" class="nes-btn" style="width:20em;">
+					<input id="noMiddleName" type="checkbox" class="nes-checkbox" style="background-color:white;"/>
+					<span>No Middle Name</span>
+				</div>
+			</label>
+			
+			<br><br>
+			
+			<div v-if="!authenticated" style="text-align:center;margin-left:auto;margin-right:auto;">
+				<button type="button" class="nes-btn" v-on:click="generateNames();" style=";margin-right:5.6em;">
+					Generate
+				</button>
+				<span class="nes-balloon" style="background:white;font-size:85%;margin-bottom:-5em; margin-top:-1em">Log in to save names!</span>
+			</div>
+			
+			<div v-else style="text-align:center;margin-left:auto;margin-right:auto;">
+				<button type="button" class="nes-btn" value="Generate" v-on:click="generateNames();" style=";margin-right:2em;">
+					Generate
+				</button>
+				<button id="saveNameButton" type="button" class="nes-btn" value="Save" v-on:click="saveName()" style="margin-right:2em;">
+					Save
+				</button>
+				<button id="deleteNameButton" type="button" class="nes-btn" value="Delete" v-on:click="deleteName('no')">
+					Delete
+				</button>
+			</div>
+
+			<br>
+			
+			<div class="nes-container with-title" style="background-color:white;height:28em;">
+				<p class="title" style="font-size:125%">Generated Names</p>
+				<div class="lists" style="font-size:115%;height:100%;max-width:100%;overflow:scroll;">
+					<nav>
+						<ul id="generatedNamesList" class="nes-list is-circle"></ul>
+					</nav>
+				</div>
+			</div>
+			
+		</div>
+			
+			<div style="float:right;width:47.5%">
+				<div class="nes-container with-title" style="background-color:white;width:95%;margin-left:2.5%">
+					<p class="title" style="font-size:125%;">Saved Names</p>
+					<div class="lists" id="savedNamesList" style="height:24.5em;font-size:115%;overflow:scroll">
+						<nav>
+							<ul id="savedNamesList" class="nes-list is-circle">
+							</ul>
+						</nav>
+					</div>
+				</div>
+				
+				<div v-if="authenticated" style="text-align:center;">
+					<button type="button" class="nes-btn" value="Delete All" v-on:click="showPopup('confirmDeleteAllLayer', '', '')" style="margin-top:2em">
+						Delete All
+					</button>
+					
+					<div style="font-size:120%;margin-top:2em">
+						<span>Any suggestions? <a href="javascript:void(0)" v-on:click="showPopup('feedbackLayer', '', '')">Leave us a feedback!</a></span>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+    </main>
+	
+	<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+	
+	<script type="text/javascript" src="script.js"></script>
+	
+</body>
+</html>
+
+<!-- <div> -->
+			<!-- <div class="nes-table-responsive" style="float:left;width:52%;margin-top:-0.92%;"> -->
+				<!-- <table class="nes-table" style="background-color:#eed7a1"> -->
+					<!-- <thead> -->
+						<!-- <tr> -->
+							<!-- <th style="border:none;">	 -->
+								<!-- <div class="nes-table-responsive"> -->
+								  <!-- <table class="nes-table" style="background-color:#eed7a1;"> -->
+									<!-- <thead> -->
+									  <!-- <tr> -->
+										<!-- <th style="border: none;"> -->
+											<!-- <label for="genderSelect">Gender</label> -->
+											<!-- <div class="nes-select" style="width:200px;display:inline-block"> -->
+												<!-- <select required id="genderSelect"> -->
+													<!-- <option value="" disabled selected hidden>Select...</option> -->
+													<!-- <option value="Male">Male</option> -->
+													<!-- <option value="Female">Female</option> -->
+												<!-- </select> -->
+											<!-- </div> -->
+											<!-- <label for="backgroundSelect">Background</label> -->
+											<!-- <div class="nes-select" style="width:260px;display:inline-block"> -->
+												<!-- <select required id="backgroundSelect"> -->
+													<!-- <option value="" disabled selected hidden>Select...</option> -->
+													<!-- <option value="Human">Human</option> -->
+													<!-- <option value="Elf">Elf</option> -->
+													<!-- <option value="Dwarf">Dwarf</option> -->
+													<!-- <option value="Orc">Orc</option> -->
+													<!-- <option value="Dragonborn">Dragonborn</option> -->
+												<!-- </select> -->
+											<!-- </div> -->
+											<!-- <br><br> -->
+											<!-- <label for="totalSelect" style="margin-right:1em;">Total</label> -->
+											<!-- <div class="nes-select" style="width:160px;display:inline-block;margin-right:6em;"> -->
+												<!-- <select required id="totalSelect"> -->
+													<!-- <option value="" disabled selected hidden>Select...</option> -->
+													<!-- <option value="1">1</option> -->
+													<!-- <option value="2">2</option> -->
+													<!-- <option value="3">3</option> -->
+													<!-- <option value="4">4</option> -->
+													<!-- <option value="5">5</option> -->
+													<!-- <option value="6">6</option> -->
+													<!-- <option value="7">7</option> -->
+													<!-- <option value="8">8</option> -->
+													<!-- <option value="9">9</option> -->
+													<!-- <option value="10">10</option> -->
+												<!-- </select> -->
+											<!-- </div> -->
+											<!-- <label> -->
+												<!-- <div type="button" class="nes-btn" style="width:20em;"> -->
+													<!-- <input id="noMiddleName" type="checkbox" class="nes-checkbox" style="background-color:white;"/> -->
+													<!-- <span>No Middle Name</span> -->
+												<!-- </div> -->
+											<!-- </label> -->
+											<!-- <br><br> -->
+											<!-- <div v-if="!authenticated"> -->
+												<!-- <button type="button" class="nes-btn" v-on:click="generateNames();" style=";margin-left:7.2em;margin-right:5.6em;"> -->
+													<!-- Generate -->
+												<!-- </button> -->
+												<!-- <span class="nes-balloon" style="background:white;font-size:85%;margin-bottom:-5em; margin-top:-1em">Log in to save names!</span> -->
+											<!-- </div> -->
+											
+											<!-- <div v-else> -->
+												<!-- <button type="button" class="nes-btn" value="Generate" v-on:click="generateNames();" style=";margin-left:9em;margin-right:2em;"> -->
+													<!-- Generate -->
+												<!-- </button> -->
+												<!-- <button id="saveNameButton" type="button" class="nes-btn" value="Save" v-on:click="saveName()" style="margin-right:2em;"> -->
+													<!-- Save -->
+												<!-- </button> -->
+												<!-- <button id="deleteNameButton" type="button" class="nes-btn" value="Delete" v-on:click="deleteName('no')"> -->
+													<!-- Delete -->
+												<!-- </button> -->
+											<!-- </div> -->
+										<!-- </th> -->
+									  <!-- </tr> -->
+									<!-- </thead> -->
+									<!-- <tbody> -->
+									  <!-- <tr> -->
+										<!-- <td> -->
+											<!-- <br> -->
+											<!-- <div class="nes-container with-title" style="background-color:white;height:27em;"> -->
+											  <!-- <p class="title" style="font-size:125%">Generated Names</p> -->
+											  <!-- <div class="lists" style="font-size:115%;height:20em;max-width:100%;overflow:scroll;"> -->
+													<!-- <nav> -->
+														<!-- <ul id="generatedNamesList" class="nes-list is-circle"> -->
+														<!-- </ul> -->
+													<!-- </nav> -->
+											  <!-- </div> -->
+											<!-- </div> -->
+										<!-- </td> -->
+									  <!-- </tr> -->
+									<!-- </tbody> -->
+								  <!-- </table> -->
+								<!-- </div> -->
+							<!-- </th> -->
+
+						<!-- </tr> -->
+					<!-- </thead> -->
+				<!-- </table> -->
+				
+			<!-- </div> -->
+			
+			<!-- <div style="float:right;width:47.5%"> -->
+				<!-- <div class="nes-container with-title" style="background-color:white;width:95%;margin-left:2.5%"> -->
+					<!-- <p class="title" style="font-size:100%;">Saved Names</p> -->
+					<!-- <div class="lists" id="savedNamesList" style="height:24.5em;font-size:115%;overflow:scroll"> -->
+						<!-- <nav> -->
+							<!-- <ul id="savedNamesList" class="nes-list is-circle"> -->
+							<!-- </ul> -->
+						<!-- </nav> -->
+					<!-- </div> -->
+				<!-- </div> -->
+				
+				<!-- <div v-if="authenticated" style="text-align:center;"> -->
+					<!-- <button type="button" class="nes-btn" value="Delete All" v-on:click="showPopup('confirmDeleteAllLayer', '', '')" style="margin-top:2em"> -->
+						<!-- Delete All -->
+					<!-- </button> -->
+					
+					<!-- <div style="font-size:120%;margin-top:2em"> -->
+						<!-- <span>Any suggestions? <a href="javascript:void(0)" v-on:click="showPopup('feedbackLayer', '', '')">Leave us a feedback!</a></span> -->
+					<!-- </div> -->
+				<!-- </div> -->
+			<!-- </div> -->
+		<!-- </div> -->

@@ -1,0 +1,11 @@
+--Get a user by inputting an ID
+DELIMITER //
+DROP PROCEDURE IF EXISTS getUserByID //
+
+CREATE PROCEDURE getUserByID(IN ID INT)
+BEGIN
+	SELECT *
+	FROM user
+	WHERE USER_ID = ID;
+END //
+DELIMITER ;

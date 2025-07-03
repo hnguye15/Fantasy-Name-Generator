@@ -1,0 +1,27 @@
+li:hover {
+	background-color: #b3e8dc;
+}
+.selected {
+	background-color: #4fb9af;
+}
+.selected:hover {
+	background-color: #28a99e;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .nes-balloon{
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  width: 52.5%;
+  left: 93.5%;
+  bottom: 90%;
+}
+
+.tooltip:hover .nes-balloon {
+  visibility: visible;
+}

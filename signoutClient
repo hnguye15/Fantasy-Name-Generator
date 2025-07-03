@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# substitute into the curl command
+curl -i -H "Content-Type: application/json" -X DELETE -b cookie-jar -k https://localhost:5000/logout

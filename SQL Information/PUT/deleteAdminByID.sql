@@ -1,0 +1,11 @@
+--Revoke admin status of a user by their ID
+DELIMITER //
+DROP PROCEDURE IF EXISTS deleteAdminByID //
+
+CREATE PROCEDURE deleteAdminByID(IN ID INT)
+BEGIN
+	UPDATE user
+	SET IS_ADMIN = FALSE
+	WHERE USER_ID = ID;
+END //
+DELIMITER ;

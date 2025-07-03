@@ -1,0 +1,5 @@
+- Added a "Delete all" button for saved names
+- Added a feedback popup page
+- Added a "feedback" table to the database
+- Changed some JavaScript code and stored procedure code
+- Revised and cleaned up the UI clutter

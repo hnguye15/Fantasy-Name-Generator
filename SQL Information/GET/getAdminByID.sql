@@ -1,0 +1,12 @@
+--Get an admin by inputting an ID
+DELIMITER //
+DROP PROCEDURE IF EXISTS getAdminByID //
+
+CREATE PROCEDURE getAdminByID(IN ID INT)
+BEGIN
+	SELECT *
+	FROM user
+	WHERE USER_ID = ID
+	AND IS_ADMIN IS TRUE;
+END //
+DELIMITER ;

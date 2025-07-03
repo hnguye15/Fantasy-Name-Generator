@@ -1,0 +1,11 @@
+--Make an existing user an admin
+DELIMITER //
+DROP PROCEDURE IF EXISTS addAdminByID //
+
+CREATE PROCEDURE addAdminByID(IN ID INT)
+BEGIN
+	UPDATE user
+	SET IS_ADMIN = TRUE
+	WHERE USER_ID = ID;
+END //
+DELIMITER ;
